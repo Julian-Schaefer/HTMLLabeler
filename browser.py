@@ -32,57 +32,41 @@ def executeCustomJavaScript(browser):
             window.backend = null;
             new QWebChannel(qt.webChannelTransport, function(channel) {
                 window.backend = channel.objects.backend;
-                alert('asd');
             });
 
-            var firstElement = null;
-            var secondElement = null;
+            var selectedElements = [];
 
             document.body.addEventListener('click', (event) => {
-                    if (event.target.style.border != null && event.target.style.border == "2px solid red") {
-                        event.target.style.border = null;
-                        if (firstElement == event.target) {
-                            firstElement = null;
-                        }
-                        else if (secondElement == event.target) {
-                            secondElement = null;
-                        }
-                    } else {
-                        if (firstElement != null && secondElement != null) {
-                            firstElement.style.border = null;
-                            firstElement = event.target;
-                        } else if (firstElement == null) {
-                            firstElement = event.target;
-                        } else if (secondElement == null) {
-                            secondElement = event.target;
-                        }
-
-                        event.target.style.border = "2px solid red";
-                    }
-                    window.backend.handleClicked('hallo');
-
-                    event.preventDefault();
-                });
-
-            document.body.addEventListener('mouseover',
-                function (event) {
-                    if (event.target.style.border != null && (event.target.style.border == "2px solid red"
-                        || event.target.style.border == "2px solid green")) {
-                        return;
-                    }
-
-                    event.target.style.border = "2px solid black";
-                });
-
-            document.body.addEventListener('mouseout',
-                function (event) {
-                    if (event.target.style.border != null && (event.target.style.border == "2px solid red"
-                        || event.target.style.border == "2px solid green")) {
-                        return;
-                    }
-
+                if (event.target.style.border === "2px solid red") {
                     event.target.style.border = null;
-                });
+                    selectedElements = selectedElements.filter(el => el !== event.target);
+                } else {
+                    event.target.style.border = "2px solid red";
+                    selectedElements.push(event.target);
+                }
+                
+                if (window.backend) {
+                    window.backend.handleSelection(
+                        window.location.href,
+                        window.currentLabel,
+                        JSON.stringify(selectedElements.map(el => el.outerHTML))
+                    );
+                }
+
+                event.preventDefault();
+            });
+
+            document.body.addEventListener('mouseover', function (event) {
+                if (event.target.style.border !== "2px solid red") {
+                    event.target.style.border = "2px solid black";
+                }
+            });
+
+            document.body.addEventListener('mouseout', function (event) {
+                if (event.target.style.border !== "2px solid red") {
+                    event.target.style.border = null;
+                }
+            });
             """
         )
 
