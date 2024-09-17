@@ -33,10 +33,16 @@ class Backend(QObject):
     def handle_selection(self, url: str, label: str, elements: str):
         dataset.add_selection(url, label, json.loads(elements))
         print(f"Selection added for {url}: {label}")
+        url_list.clear()
+        url_list.addItems(dataset.selections.keys())
 
 main_layout = QHBoxLayout()
-sidebar_layout = QVBoxLayout()
+left_sidebar_layout = QVBoxLayout()
+right_sidebar_layout = QVBoxLayout()
 browser_layout = QGridLayout()
+
+url_list = QListWidget()
+right_sidebar_layout.addWidget(url_list)
 
 browser = get_browser(browser_layout)
 
@@ -59,6 +65,8 @@ def load_dataset():
         dataset.load_from_file(filename)
         label_list.clear()
         label_list.addItems(dataset.labels)
+        url_list.clear()
+        url_list.addItems(dataset.selections.keys())
 
 def save_dataset():
     filename, _ = QFileDialog.getSaveFileName(main_frame, "Save Dataset", "", "JSON Files (*.json)")
@@ -70,11 +78,15 @@ url_input = QLineEdit()
 label_list = QListWidget()
 add_label_button = QPushButton("Add Label")
 
-sidebar_layout.addWidget(label_list)
-sidebar_layout.addWidget(add_label_button)
+left_sidebar_layout.addWidget(label_list)
+left_sidebar_layout.addWidget(add_label_button)
 
-main_layout.addLayout(sidebar_layout)
+main_layout.addLayout(left_sidebar_layout)
 main_layout.addLayout(browser_layout, 1)
+
+main_layout.addLayout(left_sidebar_layout)
+main_layout.addLayout(browser_layout, 1)
+main_layout.addLayout(right_sidebar_layout)
 
 # Modify widget placements
 browser_layout.addWidget(url_input, 0, 0)
@@ -95,6 +107,13 @@ def set_current_label(item):
     browser.page().runJavaScript(f"window.currentLabel = '{label}';")
 
 label_list.itemClicked.connect(set_current_label)
+
+def load_selected_url(item):
+    url = item.text()
+    url_input.setText(url)
+    load_url()
+
+url_list.itemClicked.connect(load_selected_url)
 
 # Update main frame setup
 main_frame = QWidget()
