@@ -18,7 +18,7 @@ import sys
 from optparse import OptionParser
 import json
 from browser import get_browser
-from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QListWidget, QInputDialog
+from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QListWidget, QInputDialog, QMenuBar
 from PyQt5.QtWidgets import QMenu, QAction, QFileDialog
 from dataset import dataset
 
@@ -96,25 +96,24 @@ def set_current_label(item):
 
 label_list.itemClicked.connect(set_current_label)
 
-def show_context_menu(pos):
-    context_menu = QMenu(main_frame)
-    load_action = QAction("Load Dataset", main_frame)
-    save_action = QAction("Save Dataset", main_frame)
-    
-    load_action.triggered.connect(load_dataset)
-    save_action.triggered.connect(save_dataset)
-    
-    context_menu.addAction(load_action)
-    context_menu.addAction(save_action)
-    
-    context_menu.exec_(main_frame.mapToGlobal(pos))
-
 # Update main frame setup
 main_frame = QWidget()
 main_frame.setLayout(main_layout)
 main_frame.setWindowTitle("HTML Labeler")
-main_frame.setContextMenuPolicy(Qt.CustomContextMenu)
-main_frame.customContextMenuRequested.connect(show_context_menu)
+
+# Create menubar
+menubar = QMenuBar(main_frame)
+file_menu = menubar.addMenu('File')
+
+load_action = file_menu.addAction('Load Dataset')
+save_action = file_menu.addAction('Save Dataset')
+
+load_action.triggered.connect(load_dataset)
+save_action.triggered.connect(save_dataset)
+
+# Update main layout to include menubar
+main_layout.setMenuBar(menubar)
+
 main_frame.show()
 
 app.exec_()
